@@ -1,4 +1,4 @@
-#include "FrameScroller.h"
+#include "./FrameScroller.h"
 
 FrameScroller::FrameScroller(Arduino_LED_Matrix* matrix)
   : _matrix(matrix),
@@ -143,18 +143,16 @@ void FrameScroller::play(uint8_t n_loops) {
   _last_update = millis();
   _current_offset = getStartOffset();
 
+  extractWindow();
+
   char msg[150];
   snprintf(msg, sizeof(msg), "Animation started: offset=%d, max_offset=%d, start_mode=%s, f_w=%d, f_h=%d, direction: %s",
            _current_offset, getMaxOffset(),
            (_start_mode == FWDIR) ? "FWDIR" : "RWDIR", _frame_width, _frame_height, _forward ? "forward" : "reverse");
   log(INFO, msg);
 
-  // if (_loops_completed == 0 && _current_offset == start_offset) {
-  //   _forward = (_start_mode == FWDIR);
-  //   char msg[40];
-  //   snprintf(msg, sizeof(msg), "Animation started, direction: %s", _forward ? "forward" : "reverse");
-  //   log(INFO, msg);
-  // }
+  show();
+  delay(getWaitFrame());
 }
 
 void FrameScroller::pause() {
@@ -191,12 +189,13 @@ void FrameScroller::ticker() {
 }
 
 void FrameScroller::show() {
-  if (_frame_data != nullptr) {
+  if (_frame_data != nullptr && _playing) {
+    log(DEBUG, "show");
     _matrix->draw(_display_buffer);
     if (_forward)
-      _current_offset++;
+     _current_offset++;
     else
-      _current_offset--;
+     _current_offset--;
   }
 
   // Se i loop sono terminati, ferma completamente
@@ -216,12 +215,12 @@ void FrameScroller::updateOffset() {
     if (_mode_loop == MONODIR) {
       // Muove in una sola direzione
       if (_start_mode == FWDIR) {
-        //_current_offset++;
+       //_current_offset++;
         char dbg[40];
         snprintf(dbg, sizeof(dbg), "MONODIR Offset HOR: %d (forward)", _current_offset);
         log(DEBUG, dbg);
 
-        if (_current_offset > max_offset) {
+        if (_current_offset >= max_offset) {
           _loops_completed++;
           char info[50];
           snprintf(info, sizeof(info), "MONODIR HOR Loop %u completed6 (forward)", _loops_completed);
@@ -234,12 +233,12 @@ void FrameScroller::updateOffset() {
           }
         }
       } else {
-        //_current_offset--;
+       //_current_offset--;
         char dbg[40];
         snprintf(dbg, sizeof(dbg), "MONODIR Offset HOR: %d (reverse)", _current_offset);
         log(DEBUG, dbg);
 
-        if (_current_offset < start_offset) {
+        if (_current_offset <= start_offset) {
           _loops_completed++;
           char info[50];
           snprintf(info, sizeof(info), "MONODIR HOR Loop %u completed5 (reverse)", _loops_completed);
@@ -255,7 +254,7 @@ void FrameScroller::updateOffset() {
     } else {
       // Andata e ritorno (BIDIR)
       if (_forward) {
-        //_current_offset++;
+       //_current_offset++;
         char dbg[40];
         snprintf(dbg, sizeof(dbg), "BIDIR Offset HOR: %d (forward)", _current_offset);
         log(DEBUG, dbg);
@@ -265,7 +264,7 @@ void FrameScroller::updateOffset() {
           log(INFO, "BIDIR HOR Direction changed: reverse");
         }
       } else {
-        //_current_offset--;
+       //_current_offset--;
         char dbg[40];
         snprintf(dbg, sizeof(dbg), "BIDIR Offset HOR: %d (reverse)", _current_offset);
         log(DEBUG, dbg);
@@ -289,12 +288,12 @@ void FrameScroller::updateOffset() {
     // Verticale (VER)
     if (_mode_loop == MONODIR) {
       if (_start_mode == FWDIR) {
-        //_current_offset++;
+       //_current_offset++;
         char dbg[40];
         snprintf(dbg, sizeof(dbg), "MONODIR Offset VER: %d (forward)", _current_offset);
         log(DEBUG, dbg);
 
-        if (_current_offset > max_offset) {
+        if (_current_offset >= max_offset) {
           _loops_completed++;
           char info[50];
           snprintf(info, sizeof(info), "MONODIR VER Loop %u completed3 (forward)", _loops_completed);
@@ -307,12 +306,12 @@ void FrameScroller::updateOffset() {
           }
         }
       } else {
-        //_current_offset--;
+       //_current_offset--;
         char dbg[40];
         snprintf(dbg, sizeof(dbg), "MONODIR Offset VER: %d  (reverse)", _current_offset);
         log(DEBUG, dbg);
 
-        if (_current_offset < start_offset) {
+        if (_current_offset <= start_offset) {
           _loops_completed++;
           char info[50];
           snprintf(info, sizeof(info), "MONODIR VER Loop %u completed2 (reverse)", _loops_completed);
@@ -326,7 +325,7 @@ void FrameScroller::updateOffset() {
         }
       }
     } else {
-      //_current_offset++;
+     //_current_offset++;
       // BIDIR verticale
       if (_forward) {
         char dbg[40];
@@ -338,7 +337,7 @@ void FrameScroller::updateOffset() {
           log(INFO, "BIDIR VER Direction changed: reverse");
         }
       } else {
-        //_current_offset--;
+       //_current_offset--;
         char dbg[40];
         snprintf(dbg, sizeof(dbg), "BIDIR Offset VER: %d (reverse)", _current_offset);
         log(DEBUG, dbg);
@@ -363,14 +362,14 @@ void FrameScroller::updateOffset() {
 
 void FrameScroller::extractWindow() {
   memset(_display_buffer, 0, MATRIX_SIZE);
-
   int16_t pos_offset_x = getPositionOffsetX();
   int16_t pos_offset_y = getPositionOffsetY();
   int16_t use_curr_off = _current_offset;
+  int16_t max_offset = getMaxOffset();
 
-  if (!_forward) use_curr_off = _current_offset;
-  char info[100];
-  snprintf(info, sizeof(info), "extractWindow pos_offset_x: %u, pos_offset_y %u, use_curr_off %u", pos_offset_x, pos_offset_y, use_curr_off);
+  char info[150];
+  snprintf(info, sizeof(info), "extractWindow: pos_offset_x=%d, pos_offset_y=%d, use_curr_off=%d, max_offset=%d",
+           pos_offset_x, pos_offset_y, use_curr_off, max_offset);
   log(DEBUG, info);
 
   if (_direction == HOR) {
@@ -381,7 +380,22 @@ void FrameScroller::extractWindow() {
       // Controlla se questa riga del frame è visibile
       if (src_row >= 0 && src_row < (int16_t)_frame_height) {
         for (uint8_t col = 0; col < MATRIX_WIDTH; col++) {
-          int16_t src_col = col + use_curr_off;
+          // Se frame > matrice (max_offset > 0): src_col oscilla, pos_offset_x = 0
+          // Se frame < matrice (max_offset > 0): pos_offset_x oscilla, src_col fisso
+          int16_t src_col;
+
+          if (_frame_width > MATRIX_WIDTH) {
+            // Frame largo: usa offset per scorrere il frame
+            src_col = col + use_curr_off;
+            snprintf(info, sizeof(info), "HOR LARGE: col=%d, use_curr_off=%d, src_col=%d", col, use_curr_off, src_col);
+          } else {
+            // Frame piccolo: oscilla la posizione sulla matrice
+            int16_t actual_pos_x = pos_offset_x + use_curr_off;
+            src_col = col - actual_pos_x;
+            snprintf(info, sizeof(info), "HOR SMALL: col=%d, pos_offset_x=%d, use_curr_off=%d, actual_pos_x=%d, src_col=%d",
+                     col, pos_offset_x, use_curr_off, actual_pos_x, src_col);
+          }
+          log(DEBUG, info);
 
           if (src_col >= 0 && src_col < (int16_t)_frame_width) {
             uint16_t src_idx = src_row * _frame_width + src_col;
@@ -394,7 +408,20 @@ void FrameScroller::extractWindow() {
   } else {
     // Scroll verticale, posizionamento orizzontale
     for (uint8_t row = 0; row < MATRIX_HEIGHT; row++) {
-      int16_t src_row = row + use_curr_off;
+      int16_t src_row;
+ 
+      if (_frame_height > MATRIX_HEIGHT) {
+        // Frame alto: usa offset per scorrere il frame
+        src_row = row + use_curr_off;
+        snprintf(info, sizeof(info), "VER LARGE: row=%d, use_curr_off=%d, src_row=%d", row, use_curr_off, src_row);
+      } else {
+        // Frame piccolo: oscilla la posizione sulla matrice
+        int16_t actual_pos_y = pos_offset_y + use_curr_off;
+        src_row = row - actual_pos_y;
+        snprintf(info, sizeof(info), "VER SMALL: row=%d, pos_offset_y=%d, use_curr_off=%d, actual_pos_y=%d, src_row=%d",
+                 row, pos_offset_y, use_curr_off, actual_pos_y, src_row);
+      }
+      log(DEBUG, info);
 
       if (src_row >= 0 && src_row < (int16_t)_frame_height) {
         for (uint8_t col = 0; col < MATRIX_WIDTH; col++) {
@@ -415,52 +442,54 @@ void FrameScroller::extractWindow() {
 int16_t FrameScroller::getMaxOffset() {
   char info[150];
   if (_direction == HOR) {
-    return abs((int16_t)_frame_width - MATRIX_WIDTH);
-    // // Se il frame è più largo della matrice, calcola lo scroll
-    // if (_frame_width > MATRIX_WIDTH) {
-    //   snprintf(info, sizeof(info), "getMaxOffset _frame_width > MATRIX_WIDTH _frame_width %d MATRIX_WIDTH %d v %d", _frame_width, MATRIX_WIDTH, (int16_t)_frame_width - MATRIX_WIDTH);
-    //   log(DEBUG, info);
-    //   return (int16_t)_frame_width - MATRIX_WIDTH;
-    // }
-    // // Altrimenti nessuno scroll
-    // snprintf(info, sizeof(info), "getMaxOffset _frame_width %d MATRIX_WIDTH %d v %d", _frame_width, MATRIX_WIDTH, 0);
-    // log(DEBUG, info);
-    // return 0;
+    //return abs((int16_t)_frame_width - MATRIX_WIDTH);
+    // Se il frame è più largo della matrice, calcola lo scroll
+    if (_frame_width > MATRIX_WIDTH) {
+      snprintf(info, sizeof(info), "getMaxOffset _frame_width > MATRIX_WIDTH _frame_width %d MATRIX_WIDTH %d v %d", _frame_width, MATRIX_WIDTH, (int16_t)_frame_width - MATRIX_WIDTH);
+      log(DEBUG, info);
+      return (int16_t)_frame_width - MATRIX_WIDTH;
+    } else if (_frame_width < MATRIX_WIDTH) {
+      snprintf(info, sizeof(info), "getMaxOffset _frame_width < MATRIX_WIDTH _frame_width %d MATRIX_WIDTH %d v %d", _frame_width, MATRIX_WIDTH, (int16_t)MATRIX_WIDTH - _frame_width);
+      log(DEBUG, info);
+      return (int16_t)MATRIX_WIDTH - _frame_width;
+    }
+    // Altrimenti nessuno scroll
+    snprintf(info, sizeof(info), "getMaxOffset _frame_width %d MATRIX_WIDTH %d v %d", _frame_width, MATRIX_WIDTH, 0);
+    log(DEBUG, info);
+    return 0;
   } else {
-    return abs((int16_t)_frame_height - MATRIX_HEIGHT);
-    // // Verticale
-    // if (_frame_height > MATRIX_HEIGHT) {
-    //   snprintf(info, sizeof(info), "getMaxOffset _frame_height > MATRIX_HEIGHT _frame_height %d MATRIX_HEIGHT %d v %d", _frame_height, MATRIX_HEIGHT, (int16_t)_frame_height - MATRIX_HEIGHT);
-    //   log(DEBUG, info);
-    //   return (int16_t)_frame_height - MATRIX_HEIGHT;
-    // }
-    // snprintf(info, sizeof(info), "getMaxOffset _frame_height %d MATRIX_HEIGHT %d v %d", _frame_height, MATRIX_HEIGHT, 0);
-    // log(DEBUG, info);
-    // return 0;
+    //return abs((int16_t)_frame_height - MATRIX_HEIGHT);
+    // Verticale
+    if (_frame_height > MATRIX_HEIGHT) {
+      snprintf(info, sizeof(info), "getMaxOffset _frame_height > MATRIX_HEIGHT _frame_height %d MATRIX_HEIGHT %d v %d", _frame_height, MATRIX_HEIGHT, (int16_t)_frame_height - MATRIX_HEIGHT);
+      log(DEBUG, info);
+      return (int16_t)_frame_height - MATRIX_HEIGHT;
+    } else if (_frame_height < MATRIX_HEIGHT) {
+      snprintf(info, sizeof(info), "getMaxOffset _frame_height < MATRIX_HEIGHT _frame_height %d MATRIX_HEIGHT %d v %d", _frame_height, MATRIX_HEIGHT, (int16_t)MATRIX_HEIGHT - _frame_height);
+      log(DEBUG, info);
+      return (int16_t)MATRIX_HEIGHT - _frame_height;
+    }
+    snprintf(info, sizeof(info), "getMaxOffset _frame_height %d MATRIX_HEIGHT %d v %d", _frame_height, MATRIX_HEIGHT, 0);
+    log(DEBUG, info);
+    return 0;
   }
 }
 
 int16_t FrameScroller::getStartOffset() {
   int16_t max_offset = getMaxOffset();
 
-  // Se non c'è scroll (frame <= matrice), offset fisso
+  // Se non c'è oscillazione
   if (max_offset == 0) {
     return 0;
   }
 
-  // Se c'è scroll (frame > matrice)
-  switch (_position) {
-    case START:
-      // Posizione iniziale di oscillazione
-      return (_start_mode == FWDIR) ? 0 : max_offset;
-    case END:
-      // Posizione finale di oscillazione (per inizio da fine)
-      return (_start_mode == FWDIR) ? max_offset : 0;
-    case CENTER:
-      // Centro dell'oscillazione
-      return (max_offset / 2);
-    default:
-      return 0;
+  // Oscillazione dipende SOLO da FWDIR/RWDIR, non da Position
+  if (_start_mode == FWDIR) {
+    log(DEBUG, "getStartOffset FWDIR 0");
+    return 0;  // Parte da inizio
+  } else {
+    log(DEBUG, "getStartOffset FWDIR max_offset");
+    return max_offset;  // Parte da fine
   }
 }
 

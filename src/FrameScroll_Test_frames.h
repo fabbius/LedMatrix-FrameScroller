@@ -124,27 +124,37 @@ static char* frame_tall_log = "Frame più alto della matrice, perfetto per testa
 const uint8_t frame_tall_w = 13;
 const uint8_t frame_tall_h = 16;
  
-// ===== FRAME PICCOLO (8x6) - Per posizionamento fisso =====
-// Frame più piccolo della matrice, testa START/CENTER/END senza scroll
-const uint8_t frame_small[6 * 4] = {
-  0,7,7,7,7,0,
-  0,7,7,0,7,0,
-  0,7,7,0,7,0,
-  0,7,7,7,7,0,
+// ===== FRAME PICCOLO (3x3) - Per posizionamento fisso =====
+// Frame più piccolo della matrice, testa START/CENTER/END  
+const uint8_t frame_small[3 * 3] = {
+  7,7,7,
+  7,3,7, 
+  7,7,7,
 };
-static char* frame_small_log = "Frame più piccolo della matrice, testa START/CENTER/END senza scroll";
-const uint8_t frame_small_w = 6;
-const uint8_t frame_small_h = 4;
+static char* frame_small_log = "Frame più piccolo della matrice, testa START/CENTER/END  ";
+const uint8_t frame_small_w = 3;
+const uint8_t frame_small_h = 3;
+// const uint8_t frame_small[8*6] = {
+//   0,7,7,7,7,7,7,0,
+//   0,7,0,0,0,0,7,0,
+//   0,7,0,7,7,0,7,0,
+//   0,7,0,7,7,0,7,0,
+//   0,7,0,0,0,0,7,0,
+//   0,7,7,7,7,7,7,0,
+// };
+// static char* frame_small_log = "Frame più piccolo della matrice, testa START/CENTER/END senza scroll";
+// const uint8_t frame_small_w = 8;
+// const uint8_t frame_small_h = 6;
  
 // ===== FRAME UGUALE MATRICE (13x8) - Nessuno scroll =====
 // Frame uguale alla matrice, testa che rimane fermo
 const uint8_t frame_exact[13 * 8] = {
   0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,3,3,3,3,3,3,0,0,0,0,
-  0,3,0,3,0,0,0,0,3,0,3,0,0,
-  3,7,3,3,0,7,7,0,3,3,7,3,0,
-  0,3,0,3,0,0,0,0,3,0,3,0,0,
-  0,0,0,3,3,3,3,3,3,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,7,7,0,0,0,0,0,0,0,0,0,0,
+  7,4,7,0,0,0,0,0,0,0,0,0,0,
+  7,7,7,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
