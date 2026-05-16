@@ -1,0 +1,77 @@
+# Come creare la Release 1.0.0 su GitHub
+
+## Metodo 1: Via Web (Più facile)
+
+1. Vai su: https://github.com/fabbius/LedMatrix-FrameScroller
+
+2. A destra, clicca su "Releases" (o vai a `/releases`)
+
+3. Clicca "Create a new release"
+
+4. Compila i campi:
+   - **Tag version**: `v1.0.0`
+   - **Release title**: `LedMatrix-FrameScroller v1.0.0 - Initial Release`
+   - **Description**: Copia questo testo:
+
+```
+## 🎉 First Release
+
+A powerful Arduino library for smooth LED matrix animations on 13×8 displays.
+
+### Features
+- ✨ Bidirectional scrolling (HOR & VER)
+- 🔄 Multiple loop modes (MONODIR & BIDIR)
+- 🌟 8 grayscale brightness levels
+- 📍 Smart frame positioning (START, CENTER, END)
+- 🎨 Dynamic frame handling (any size)
+- 🔧 Easy-to-use API
+- 📊 Comprehensive logging
+
+### Installation
+Via Arduino IDE Library Manager or clone from GitHub.
+
+### Quick Start
+```cpp
+#include "FrameScroller.h"
+Arduino_LED_Matrix matrix;
+FrameScroller scroller(&matrix);
+
+scroller.setFrame(frame_data, 13, 8, FrameScroller::EASY);
+scroller.setDirection(FrameScroller::HOR);
+scroller.setModeLoop(FrameScroller::BIDIR);
+scroller.play();
+```
+
+### Documentation
+📖 Full documentation, API reference, and examples in README.md
+
+### Credits
+Library design and implementation: fabbius
+
+**Thank you for trying LedMatrix-FrameScroller!** 🚀
+```
+
+5. Clicca "Publish release"
+
+---
+
+## Metodo 2: Via Linea di Comando
+
+```bash
+# Crea un tag locale
+git tag -a v1.0.0 -m "LedMatrix-FrameScroller v1.0.0 - Initial Release"
+
+# Pusha il tag su GitHub
+git push origin v1.0.0
+```
+
+Poi vai su GitHub e crea la release dal tag (opzionale, il tag basta per il rilascio).
+
+---
+
+## Verifica
+
+Una volta fatto:
+- Vai su https://github.com/fabbius/LedMatrix-FrameScroller/releases
+- Dovresti vedere la release v1.0.0 listata
+- I badge nel README dovranno aggiornati automaticamente
